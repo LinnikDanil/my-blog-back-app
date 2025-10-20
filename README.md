@@ -85,7 +85,7 @@ WAR‑файл будет создан в `build/libs/my-blog-back-app.war`
 Поддерживаются эндпоинты:
 
 * `GET /api/posts?search=&pageNumber=&pageSize=` — список постов;
-* `POST /api/posts/{id}` — получение поста;
+* `GET /api/posts/{id}` — получение поста;
 * `POST /api/posts` — добавление поста;
 * `PUT /api/posts/{id}` — редактирование поста;
 * `DELETE /api/posts/{id}` — удаление поста;
@@ -93,6 +93,7 @@ WAR‑файл будет создан в `build/libs/my-blog-back-app.war`
 * `PUT /api/posts/{id}/image` — загрузка изображения;
 * `GET /api/posts/{id}/image` — получение изображения;
 * `GET /api/posts/{id}/comments` — список комментариев;
+* `GET /api/posts/{id}/comment/{commentId}` — получение комментария;
 * `POST /api/posts/{id}/comments` — добавление комментария;
 * `PUT /api/posts/{id}/comments/{commentId}` — редактирование комментария;
 * `DELETE /api/posts/{id}/comments/{commentId}` — удаление комментария.
@@ -135,7 +136,7 @@ WAR‑файл будет создан в `build/libs/my-blog-back-app.war`
 
 ```
 my-blog-back-app/
-├─ src/main/java/com/example/blog/
+├─ src/main/java/ru/practicum/blog/
 │  ├─ configuration/
 │  ├─ controller/
 │  ├─ service/

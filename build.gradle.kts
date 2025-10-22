@@ -14,7 +14,7 @@ dependencies {
     // Spring
     implementation(platform("org.springframework:spring-framework-bom:6.2.11"))
     implementation("org.springframework:spring-webmvc")
-//    implementation("org.springframework:spring-jdbc")
+    implementation("org.springframework.data:spring-data-jdbc:3.5.5")
 
     // Servlet API
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
@@ -29,7 +29,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
 
     // Data base
-//    implementation("org.postgresql:postgresql:42.7.8")
+    implementation("org.postgresql:postgresql:42.7.8")
 
     // Lombok
     annotationProcessor("org.projectlombok:lombok:1.18.42")

@@ -38,7 +38,7 @@ dependencies {
     // Test
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.springframework:spring-test")
 //    testImplementation("com.h2database:h2:2.4.240")
 }

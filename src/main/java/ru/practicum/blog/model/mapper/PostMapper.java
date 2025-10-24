@@ -8,8 +8,6 @@ import ru.practicum.blog.model.dto.PostsResponseDto;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @UtilityClass
 public class PostMapper {
@@ -18,16 +16,14 @@ public class PostMapper {
 
     public static PostsResponseDto toPostsResponseDto(
             List<Post> posts,
-            Map<Long, List<Tag>> tagsPost,
             boolean hasPrev,
             boolean hasNext,
             int lastPage
     ) {
         List<PostResponseDto> postDtos = new ArrayList<>();
         for (Post post : posts) {
-            List<Tag> tags = Optional.ofNullable(tagsPost.get(post.getId())).orElse(new ArrayList<>());
             String truncateText = truncateWithEllipsis(post.getText());
-            postDtos.add(toPostResponseDto(post, tags, truncateText));
+            postDtos.add(toPostResponseDto(post, truncateText));
         }
 
         return new PostsResponseDto(
@@ -38,8 +34,8 @@ public class PostMapper {
         );
     }
 
-    public static PostResponseDto toPostResponseDto(Post post, List<Tag> tags, String text) {
-        List<String> tagNames = tags.stream().map(Tag::getName).toList();
+    public static PostResponseDto toPostResponseDto(Post post, String text) {
+        List<String> tagNames = post.getTags().stream().map(Tag::getName).toList();
 
         return new PostResponseDto(
                 post.getId(),

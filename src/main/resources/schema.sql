@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS blog_app;
 CREATE TABLE IF NOT EXISTS tag
 (
     id   BIGSERIAL PRIMARY KEY,
-    name VARCHAR(256) NOT NULL UNIQUE
+    name VARCHAR(256) NOT NULL UNIQUE CHECK (name = lower(name))
 );
 
 CREATE TABLE IF NOT EXISTS post
@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS post
     likes_count    INTEGER      NOT NULL DEFAULT 0 CHECK (likes_count >= 0),
     comments_count INTEGER      NOT NULL DEFAULT 0 CHECK (comments_count >= 0),
     image          BYTEA,
+    updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -33,4 +34,3 @@ CREATE TABLE IF NOT EXISTS post_tag
 );
 
 CREATE INDEX IF NOT EXISTS idx_comment_post_id ON comment (post_id);
-CREATE UNIQUE INDEX IF NOT EXISTS uq_tag_name_ci ON tag (LOWER(name));

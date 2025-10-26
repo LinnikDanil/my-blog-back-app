@@ -28,4 +28,7 @@ public interface PostRepository {
 
     byte[] getImage(long id);
 
+    void incrementComments(long postId);
+
+    void decrementComments(long postId);
 }

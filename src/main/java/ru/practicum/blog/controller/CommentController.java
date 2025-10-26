@@ -14,7 +14,7 @@ import ru.practicum.blog.model.dto.CommentRequestDto;
 import ru.practicum.blog.model.dto.CommentResponseDto;
 import ru.practicum.blog.service.CommentService;
 
-import java.util.Set;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/posts/{postId}/comments")
@@ -24,7 +24,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping
-    public Set<CommentResponseDto> getComments(
+    public List<CommentResponseDto> getComments(
             @PathVariable("postId") long postId
     ) {
         return commentService.getComments(postId);

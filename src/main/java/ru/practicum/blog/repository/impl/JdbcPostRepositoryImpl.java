@@ -1,4 +1,4 @@
-package ru.practicum.blog.repository;
+package ru.practicum.blog.repository.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,6 +12,7 @@ import ru.practicum.blog.exception.PostImageException;
 import ru.practicum.blog.exception.PostNotFoundException;
 import ru.practicum.blog.model.Post;
 import ru.practicum.blog.model.Tag;
+import ru.practicum.blog.repository.PostRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -245,6 +246,30 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElseThrow(() -> new PostImageException("Картинка для поста с id = %d не загружена.".formatted(id)));
+    }
+
+    @Override
+    public void incrementComments(long postId) {
+        String sql = """
+                UPDATE post
+                SET comments_count = (comments_count + 1),
+                updated_at = CURRENT_TIMESTAMP
+                WHERE id = :postId
+                """;
+
+        jdbcTemplate.update(sql, Map.of("postId", postId));
+    }
+
+    @Override
+    public void decrementComments(long postId) {
+        String sql = """
+                UPDATE post
+                SET comments_count = (comments_count - 1),
+                updated_at = CURRENT_TIMESTAMP
+                WHERE id = :postId
+                """;
+
+        jdbcTemplate.update(sql, Map.of("postId", postId));
     }
 
     private List<Long> findPostIds(

@@ -7,8 +7,10 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 import ru.practicum.blog.exception.PostDbException;
+import ru.practicum.blog.exception.PostNotFoundException;
 import ru.practicum.blog.model.Post;
 import ru.practicum.blog.model.Tag;
 
@@ -45,7 +47,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                     SELECT p.id
                     FROM post p
                     WHERE :title = '' OR LOWER(p.title) LIKE CONCAT('%',:title,'%')
-                    ORDER BY created_at DESC, id DESC 
+                    ORDER BY created_at DESC, id DESC
                     LIMIT :limit OFFSET :offset
                     """;
         } else {
@@ -180,10 +182,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
         // Если в обновлённом посте тегов нет, то очищаем все теги поста
         if (updatedTagNames.isEmpty()) {
-            jdbcTemplate.update(
-                    "DELETE FROM post_tag WHERE post_id = :postId",
-                    Map.of("postId", postId)
-            );
+            deleteTagsForPost(postId);
         } else {
             // Если в обновлённом посте есть теги, то сохраняем новые теги (старые просто проигнорируются)
             insertBatchTags(updatedTagNames);
@@ -202,6 +201,12 @@ public class JdbcPostRepositoryImpl implements PostRepository {
         }
 
         return findPostById(postId).orElseThrow(() -> new PostDbException("Ошибка при обновлении поста"));
+    }
+
+    @Override
+    public void deletePost(long id) {
+        jdbcTemplate.update("DELETE FROM post WHERE id = :id", Map.of("id", id));
+        deleteTagsForPost(id);
     }
 
     @Override
@@ -243,6 +248,42 @@ public class JdbcPostRepositoryImpl implements PostRepository {
         String sql = "SELECT COUNT(*) FROM post WHERE id = :id";
         Integer userCount = jdbcTemplate.queryForObject(sql, Map.of("id", id), Integer.class);
         return userCount != null && userCount > 0;
+    }
+
+    @Override
+    public int incrementLikes(long id) {
+        String sql = """
+                UPDATE post
+                SET likes_count = (likes_count + 1),
+                updated_at = CURRENT_TIMESTAMP
+                WHERE id = :postId
+                RETURNING likes_count
+                """;
+
+        return jdbcTemplate.query(
+                        sql,
+                        Map.of("postId", id),
+                        (rs, rn) -> rs.getInt("likes_count")
+                ).stream()
+                .findFirst()
+                .orElseThrow(() -> new PostNotFoundException("Поста с id = %d не существует".formatted(id)));
+    }
+
+    @Override
+    public boolean updateImage(long id, byte[] image) {
+        int updated = jdbcTemplate.update("UPDATE post SET image = :image WHERE id = :id", Map.of("image", image, "id", id));
+        return updated > 0;
+    }
+
+    @Override
+    public byte[] getImage(long id) {
+        return jdbcTemplate.query(
+                        "SELECT image FROM post WHERE id = :id",
+                        Map.of("id", id),
+                        (rs, rn) -> rs.getBytes("image")
+                ).stream()
+                .findFirst()
+                .orElseThrow(() -> new PostNotFoundException("Поста с id = %d не существует".formatted(id)));
     }
 
     private List<Tag> findTagsByPostId(long id) {
@@ -329,5 +370,23 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                         .toArray()
         );
         jdbcTemplate.batchUpdate(sqlInsertToPostTag, postTagForBatch);
+    }
+
+    private void deleteTagsForPost(long postId) {
+        jdbcTemplate.update(
+                "DELETE FROM post_tag WHERE post_id = :postId",
+                Map.of("postId", postId)
+        );
+    }
+
+    @Scheduled(cron = "0 0 0 * * 1") // каждый понедельник в 00:00
+    private void cleanupUnusedTags() {
+        jdbcTemplate.update("""
+                    DELETE FROM tag t
+                    WHERE NOT EXISTS (
+                      SELECT 1 FROM post_tag pt
+                      WHERE pt.tag_id = t.id)
+                """, Map.of()
+        );
     }
 }

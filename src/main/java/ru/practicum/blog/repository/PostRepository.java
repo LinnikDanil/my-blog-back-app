@@ -1,8 +1,6 @@
 package ru.practicum.blog.repository;
 
-import jakarta.validation.constraints.NotBlank;
 import ru.practicum.blog.model.Post;
-import ru.practicum.blog.model.Tag;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,5 +25,13 @@ public interface PostRepository {
 
     Post updatePost(long id,String title, String text, List<String> updatedTagNames);
 
+    void deletePost(long id);
+
     boolean existsById(Long id);
+
+    int incrementLikes(long id);
+
+    boolean updateImage(long id, byte[] image);
+
+    byte[] getImage(long id);
 }

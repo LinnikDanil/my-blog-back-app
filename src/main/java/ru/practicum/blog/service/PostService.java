@@ -5,6 +5,8 @@ import ru.practicum.blog.model.dto.PostRequestDto;
 import ru.practicum.blog.model.dto.PostResponseDto;
 import ru.practicum.blog.model.dto.PostsResponseDto;
 
+import java.io.IOException;
+
 public interface PostService {
     PostsResponseDto getPosts(String search, int pageNumber, int pageSize);
 
@@ -18,7 +20,7 @@ public interface PostService {
 
     int incrementLikes(long id);
 
-    void updateImage(long id, MultipartFile image);
+    void updateImage(long id, MultipartFile image) throws IOException;
 
     byte[] getImage(long id);
 }

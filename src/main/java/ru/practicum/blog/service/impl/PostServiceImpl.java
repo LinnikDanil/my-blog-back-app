@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ru.practicum.blog.exception.PostImageException;
 import ru.practicum.blog.exception.PostNotFoundException;
 import ru.practicum.blog.model.Post;
 import ru.practicum.blog.model.dto.PostRequestDto;
@@ -13,6 +14,7 @@ import ru.practicum.blog.model.mapper.PostMapper;
 import ru.practicum.blog.repository.PostRepository;
 import ru.practicum.blog.service.PostService;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -89,9 +91,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostResponseDto updatePost(long id, PostRequestDto postRequestDto) {
-        if (!postRepository.existsById(id)) {
-            throw new PostNotFoundException("Post with id %d not found".formatted(id));
-        }
+        checkExistPost(id);
         List<String> updatedTagNames = getNormalizedTags(postRequestDto.tags());
 
         Post post = postRepository.updatePost(
@@ -106,22 +106,31 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void deletePost(long id) {
-
+        postRepository.deletePost(id);
     }
 
     @Override
     public int incrementLikes(long id) {
-        return 0;
+        return postRepository.incrementLikes(id);
     }
 
     @Override
-    public void updateImage(long id, MultipartFile image) {
+    public void updateImage(long id, MultipartFile image) throws IOException {
+        checkExistPost(id);
 
+        if (image.isEmpty()) {
+            throw new PostImageException("Картинка не может быть пустой");
+        }
+
+        boolean isUpdated = postRepository.updateImage(id, image.getBytes());
+        if (!isUpdated) {
+            throw new PostImageException("Ошибка обновления картинки");
+        }
     }
 
     @Override
     public byte[] getImage(long id) {
-        return new byte[0];
+        return postRepository.getImage(id);
     }
 
     private Post findPostById(Long postId) {
@@ -134,5 +143,11 @@ public class PostServiceImpl implements PostService {
                 .map(String::trim)
                 .map(String::toLowerCase)
                 .toList();
+    }
+
+    private void checkExistPost(long postId) {
+        if (!postRepository.existsById(postId)) {
+            throw new PostNotFoundException("Пост с id = %d не найден".formatted(postId));
+        }
     }
 }

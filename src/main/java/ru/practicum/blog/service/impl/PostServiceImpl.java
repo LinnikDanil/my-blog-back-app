@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ru.practicum.blog.exception.PostBadRequestException;
 import ru.practicum.blog.exception.PostImageException;
 import ru.practicum.blog.exception.PostNotFoundException;
 import ru.practicum.blog.model.Post;
@@ -48,7 +49,7 @@ public class PostServiceImpl implements PostService {
         String titleSubstring = titleJoiner.toString();
         long offset = (long) (pageNumber - 1) * pageSize;
 
-        List<Long> postIds = postRepository.findPostIds(
+        List<Post> posts = postRepository.findPosts(
                 tags,
                 titleSubstring,
                 pageSize,
@@ -56,15 +57,22 @@ public class PostServiceImpl implements PostService {
         );
 
         long countPosts = postRepository.countPosts(tags, titleSubstring);
-        int lastPage = Math.toIntExact(Math.ceilDiv(countPosts, pageSize));
+        int lastPage;
+        if (countPosts == 0) {
+            lastPage = 1;
+        } else {
+            lastPage = Math.toIntExact(Math.ceilDiv(countPosts, pageSize));
+        }
         boolean hasPrev = pageNumber > 1;
         boolean hasNext = pageNumber < lastPage;
 
-        if (postIds.isEmpty()) {
-            return new PostsResponseDto(Collections.emptyList(), hasPrev, hasNext, lastPage);
+        if (lastPage < pageNumber) {
+            throw new PostBadRequestException("Запрашиваемая страница превышает количество возможных страниц.");
         }
 
-        List<Post> posts = postRepository.findPostsByIds(postIds);
+        if (posts.isEmpty()) {
+            return new PostsResponseDto(Collections.emptyList(), hasPrev, hasNext, lastPage);
+        }
 
         return PostMapper.toPostsResponseDto(posts, hasPrev, hasNext, lastPage);
     }
@@ -72,7 +80,8 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public PostResponseDto getPost(long id) {
-        Post post = findPostById(id);
+        Post post = postRepository.findPostById(id)
+                .orElseThrow(() -> new PostNotFoundException("Пост с id = %d не найден".formatted(id)));
 
         return PostMapper.toPostResponseDto(post, post.getText());
     }
@@ -91,7 +100,11 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostResponseDto updatePost(long id, PostRequestDto postRequestDto) {
-        checkExistPost(id);
+        if (postRequestDto.id() != null && id != postRequestDto.id()) {
+            throw new PostBadRequestException("id поста в переменной пути и теле запроса должны совпадать.");
+        }
+
+        checkExistencePost(id);
         List<String> updatedTagNames = getNormalizedTags(postRequestDto.tags());
 
         Post post = postRepository.updatePost(
@@ -115,37 +128,40 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void updateImage(long id, MultipartFile image) throws IOException {
-        checkExistPost(id);
+    public void updateImage(long id, MultipartFile image) {
+        checkExistencePost(id);
 
         if (image.isEmpty()) {
             throw new PostImageException("Картинка не может быть пустой");
         }
 
-        boolean isUpdated = postRepository.updateImage(id, image.getBytes());
-        if (!isUpdated) {
-            throw new PostImageException("Ошибка обновления картинки");
+        try {
+            boolean isUpdated = postRepository.updateImage(id, image.getBytes());
+            if (!isUpdated) {
+                throw new PostImageException("Ошибка обновления картинки");
+            }
+        } catch (IOException ex) {
+            throw new PostImageException("Ошибка обновления картинки: " + ex.getMessage());
         }
     }
 
     @Override
     public byte[] getImage(long id) {
+        checkExistencePost(id);
         return postRepository.getImage(id);
     }
 
-    private Post findPostById(Long postId) {
-        return postRepository.findPostById(postId)
-                .orElseThrow(() -> new PostNotFoundException("Пост с id = %d не найден".formatted(postId)));
-    }
-
-    private static List<String> getNormalizedTags(List<String> tags) {
+    private List<String> getNormalizedTags(List<String> tags) {
+        if (tags.isEmpty()) {
+            return Collections.emptyList();
+        }
         return tags.stream()
                 .map(String::trim)
                 .map(String::toLowerCase)
                 .toList();
     }
 
-    private void checkExistPost(long postId) {
+    private void checkExistencePost(long postId) {
         if (!postRepository.existsById(postId)) {
             throw new PostNotFoundException("Пост с id = %d не найден".formatted(postId));
         }

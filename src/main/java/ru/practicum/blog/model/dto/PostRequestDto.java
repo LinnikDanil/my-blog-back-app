@@ -1,7 +1,7 @@
 package ru.practicum.blog.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
@@ -9,6 +9,6 @@ public record PostRequestDto(
         Long id,
         @NotBlank String title,
         @NotBlank String text,
-        @NotEmpty List<@NotBlank String> tags
+        @NotNull List<@NotBlank String> tags
 ) {
 }

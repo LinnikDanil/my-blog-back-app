@@ -8,30 +8,24 @@ import java.util.Set;
 
 public interface PostRepository {
 
-    List<Long> findPostIds(
-            Set<String> tags,
-            String titleSubstring,
-            int limit,
-            long offset
-    );
+    List<Post> findPosts(Set<String> tags, String titleSubstring, int pageSize, long offset);
 
     Optional<Post> findPostById(long id);
-
-    List<Post> findPostsByIds(List<Long> postIds);
 
     long countPosts(Set<String> tags, String titleSubstring);
 
     Post createPost(String title, String text, List<String> tags);
 
-    Post updatePost(long id,String title, String text, List<String> updatedTagNames);
+    Post updatePost(long id, String title, String text, List<String> updatedTagNames);
 
     void deletePost(long id);
 
-    boolean existsById(Long id);
+    boolean existsById(long id);
 
     int incrementLikes(long id);
 
     boolean updateImage(long id, byte[] image);
 
     byte[] getImage(long id);
+
 }

@@ -2,7 +2,7 @@ package ru.practicum.blog.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,7 +34,7 @@ public class PostController {
 
     @GetMapping
     public PostsResponseDto getPosts(
-            @RequestParam("search") @NotBlank String search,
+            @RequestParam("search") @NotNull String search,
             @RequestParam("pageNumber") @Min(1) int pageNumber,
             @RequestParam("pageSize") @Min(1) int pageSize
     ) {
@@ -53,7 +53,7 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public PostResponseDto updatePost(@PathVariable("id") long id, @RequestBody PostRequestDto postRequestDto) {
+    public PostResponseDto updatePost(@PathVariable("id") long id, @RequestBody @Valid PostRequestDto postRequestDto) {
         return postService.updatePost(id, postRequestDto);
     }
 

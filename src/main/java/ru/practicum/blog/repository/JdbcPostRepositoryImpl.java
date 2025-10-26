@@ -5,11 +5,10 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 import ru.practicum.blog.exception.PostDbException;
+import ru.practicum.blog.exception.PostImageException;
 import ru.practicum.blog.exception.PostNotFoundException;
 import ru.practicum.blog.model.Post;
 import ru.practicum.blog.model.Tag;
@@ -30,51 +29,40 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public List<Long> findPostIds(
-            Set<String> tags,
-            String titleSubstring,
-            int limit,
-            long offset
-    ) {
-        int tagsCount = tags.size();
-        var params = new MapSqlParameterSource()
-                .addValue("title", titleSubstring)
-                .addValue("limit", limit)
-                .addValue("offset", offset);
-        String sql;
-        if (tagsCount == 0) {
-            sql = """
-                    SELECT p.id
-                    FROM post p
-                    WHERE :title = '' OR LOWER(p.title) LIKE CONCAT('%',:title,'%')
-                    ORDER BY created_at DESC, id DESC
-                    LIMIT :limit OFFSET :offset
-                    """;
-        } else {
-            sql = """
-                    SELECT p.id
-                    FROM post p
-                    WHERE (:title = '' OR LOWER(p.title) LIKE CONCAT('%',:title,'%'))
-                        AND p.id IN (
-                            SELECT pt.post_id
-                            FROM post_tag pt
-                            JOIN tag t ON t.id = pt.tag_id
-                            WHERE t.name IN (:tags)
-                            GROUP BY pt.post_id
-                            HAVING COUNT(t.name) = :tagsCount
-                        )
-                    ORDER BY created_at DESC, id DESC
-                    LIMIT :limit OFFSET :offset
-                    """;
-            params.addValue("tags", tags);
-            params.addValue("tagsCount", tagsCount);
+    public List<Post> findPosts(Set<String> tags, String titleSubstring, int pageSize, long offset) {
+        List<Long> postIds = findPostIds(tags, titleSubstring, pageSize, offset);
+
+        if (postIds.isEmpty()) {
+            return Collections.emptyList();
         }
 
-        return jdbcTemplate.query(
+        String sql = """
+                SELECT id, title, text, likes_count, comments_count
+                FROM post
+                WHERE id IN (:postIds)
+                ORDER BY created_at DESC, id DESC
+                """;
+
+        List<Post> posts = jdbcTemplate.query(
                 sql,
-                params,
-                (resultSet, rowNum) -> resultSet.getLong("id")
+                Map.of("postIds", postIds),
+                (resultSet, rowNum) -> Post.builder()
+                        .id(resultSet.getLong("id"))
+                        .title(resultSet.getString("title"))
+                        .text(resultSet.getString("text"))
+                        .likesCount(resultSet.getInt("likes_count"))
+                        .commentsCount(resultSet.getInt("comments_count"))
+                        .build()
         );
+
+        Map<Long, List<Tag>> tagsPost = findTagsByPostIds(postIds);
+
+        for (Post post : posts) {
+            List<Tag> tagsForPosts = Optional.ofNullable(tagsPost.get(post.getId())).orElse(Collections.emptyList());
+            post.setTags(tagsForPosts);
+        }
+
+        return posts;
     }
 
     @Override
@@ -108,59 +96,28 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> findPostsByIds(List<Long> postIds) {
-        String sql = """
-                SELECT id, title, text, likes_count, comments_count
-                FROM post p
-                WHERE id IN (:postIds)
-                ORDER BY created_at DESC, id DESC
-                """;
-
-        List<Post> posts = jdbcTemplate.query(
-                sql,
-                Map.of("postIds", postIds),
-                (resultSet, rowNum) -> Post.builder()
-                        .id(resultSet.getLong("id"))
-                        .title(resultSet.getString("title"))
-                        .text(resultSet.getString("text"))
-                        .likesCount(resultSet.getInt("likes_count"))
-                        .commentsCount(resultSet.getInt("comments_count"))
-                        .build()
+    public Post createPost(String title, String text, List<String> tagNames) {
+        // Сохраняем новый пост
+        Long postId = jdbcTemplate.queryForObject(
+                "INSERT INTO post (title, text) VALUES(:title, :text) RETURNING id",
+                Map.of("title", title, "text", text),
+                Long.class
         );
 
-        Map<Long, List<Tag>> tagsPost = findTagsByPostIds(postIds);
-
-        for (Post post : posts) {
-            List<Tag> tags = Optional.ofNullable(tagsPost.get(post.getId())).orElse(Collections.emptyList());
-            post.setTags(tags);
+        if (postId == null) {
+            throw new PostDbException("Ошибка при создании поста");
         }
 
-        return posts;
-    }
+        if (!tagNames.isEmpty()) {
+            // Сохраняем новые теги
+            insertBatchTags(tagNames);
 
-    @Override
-    public Post createPost(String title, String text, List<String> tagNames) {
-        String sqlInsertPost = "INSERT INTO post (title, text) VALUES(:title, :text) RETURNING id";
+            // Получаем id всех тегов нового поста
+            List<Long> tagIds = findTagIdsByNames(tagNames);
 
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        // Сохраняем новый пост
-        jdbcTemplate.update(
-                sqlInsertPost,
-                new MapSqlParameterSource(Map.of("title", title, "text", text)),
-                keyHolder,
-                new String[]{"id"}
-        );
-        long postId = Objects.requireNonNull(keyHolder.getKey()).longValue();
-
-        // Сохраняем новые тэги
-        insertBatchTags(tagNames);
-
-        // Получаем id всех тегов нового поста
-        List<Long> tagIds = findTagIdsByNames(tagNames);
-
-        // Сохраняем все связи пост тег
-        insertPostIdTagIds(tagIds, postId);
+            // Сохраняем все связи пост тег
+            insertPostIdTagIds(tagIds, postId);
+        }
 
         return findPostById(postId).orElseThrow(() -> new PostDbException("Ошибка при создании поста"));
     }
@@ -205,7 +162,10 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public void deletePost(long id) {
-        jdbcTemplate.update("DELETE FROM post WHERE id = :id", Map.of("id", id));
+        int deleted = jdbcTemplate.update("DELETE FROM post WHERE id = :id", Map.of("id", id));
+        if (deleted == 0) {
+            throw new PostNotFoundException("Пост с id = %d не существует.".formatted(id));
+        }
         deleteTagsForPost(id);
     }
 
@@ -218,15 +178,15 @@ public class JdbcPostRepositoryImpl implements PostRepository {
         if (tagsCount == 0) {
             sql = """
                     SELECT COUNT(*)
-                    FROM post p
-                    WHERE :title = '' OR LOWER(p.title) LIKE CONCAT('%',:title,'%')
+                    FROM post
+                    WHERE :title = '' OR LOWER(title) LIKE CONCAT('%',:title,'%')
                     """;
         } else {
             sql = """
                     SELECT COUNT(*)
-                    FROM post p
-                    WHERE (:title = '' OR LOWER(p.title) LIKE CONCAT('%',:title,'%'))
-                        AND p.id IN (
+                    FROM post
+                    WHERE (:title = '' OR LOWER(title) LIKE CONCAT('%',:title,'%'))
+                        AND id IN (
                             SELECT pt.post_id
                             FROM post_tag pt
                             JOIN tag t ON t.id = pt.tag_id
@@ -244,7 +204,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public boolean existsById(Long id) {
+    public boolean existsById(long id) {
         String sql = "SELECT COUNT(*) FROM post WHERE id = :id";
         Integer userCount = jdbcTemplate.queryForObject(sql, Map.of("id", id), Integer.class);
         return userCount != null && userCount > 0;
@@ -282,8 +242,56 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                         Map.of("id", id),
                         (rs, rn) -> rs.getBytes("image")
                 ).stream()
+                .filter(Objects::nonNull)
                 .findFirst()
-                .orElseThrow(() -> new PostNotFoundException("Поста с id = %d не существует".formatted(id)));
+                .orElseThrow(() -> new PostImageException("Картинка для поста с id = %d не загружена.".formatted(id)));
+    }
+
+    private List<Long> findPostIds(
+            Set<String> tags,
+            String titleSubstring,
+            int limit,
+            long offset
+    ) {
+        int tagsCount = tags.size();
+        var params = new MapSqlParameterSource()
+                .addValue("title", titleSubstring)
+                .addValue("limit", limit)
+                .addValue("offset", offset);
+        String sql;
+        if (tagsCount == 0) {
+            sql = """
+                    SELECT id
+                    FROM post
+                    WHERE :title = '' OR LOWER(title) LIKE CONCAT('%',:title,'%')
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT :limit OFFSET :offset
+                    """;
+        } else {
+            sql = """
+                    SELECT id
+                    FROM post
+                    WHERE (:title = '' OR LOWER(title) LIKE CONCAT('%',:title,'%'))
+                        AND id IN (
+                            SELECT pt.post_id
+                            FROM post_tag pt
+                            JOIN tag t ON t.id = pt.tag_id
+                            WHERE t.name IN (:tags)
+                            GROUP BY pt.post_id
+                            HAVING COUNT(t.name) = :tagsCount
+                        )
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT :limit OFFSET :offset
+                    """;
+            params.addValue("tags", tags);
+            params.addValue("tagsCount", tagsCount);
+        }
+
+        return jdbcTemplate.query(
+                sql,
+                params,
+                (resultSet, rowNum) -> resultSet.getLong("id")
+        );
     }
 
     private List<Tag> findTagsByPostId(long id) {
@@ -291,7 +299,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                 SELECT pt.post_id, t.id, t.name
                 FROM tag t
                 JOIN post_tag pt ON t.id = pt.tag_id
-                WHERE pt.post_id = :postIds
+                WHERE pt.post_id = :postId
                 """;
 
         List<Tag> tags = jdbcTemplate.query(

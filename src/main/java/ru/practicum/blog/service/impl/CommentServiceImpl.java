@@ -2,6 +2,7 @@ package ru.practicum.blog.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.blog.domain.exception.CommentBadRequestException;
 import ru.practicum.blog.domain.exception.CommentNotFoundException;
 import ru.practicum.blog.domain.exception.PostNotFoundException;
@@ -23,6 +24,7 @@ public class CommentServiceImpl implements CommentService {
     private final PostRepository postRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentResponseDto> getComments(long postId) {
         checkExistencePost(postId);
 
@@ -31,6 +33,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CommentResponseDto getComment(long postId, long commentId) {
         checkExistencePost(postId);
 
@@ -42,6 +45,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentResponseDto createComment(long postId, CommentRequestDto commentRequestDto) {
         checkExistencePost(postId);
 
@@ -55,6 +59,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentResponseDto updateComment(long postId, long commentId, CommentRequestDto commentRequestDto) {
 
         if (postId != commentRequestDto.postId()) {
@@ -74,6 +79,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public void deleteComment(long postId, long commentId) {
         commentRepository.deleteComment(postId, commentId);
         postRepository.decrementComments(postId);

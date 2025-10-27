@@ -59,12 +59,12 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
 
     @Override
     public boolean existsById(long postId, long commentId) {
-        Integer userCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM comment WHERE id = :commentId AND post_id = :postId",
+        Boolean commentExists = jdbcTemplate.queryForObject(
+                "SELECT EXISTS(SELECT 1 FROM comment WHERE id = :commentId AND post_id = :postId)",
                 Map.of("commentId", commentId, "postId", postId),
-                Integer.class
+                Boolean.class
         );
-        return userCount != null && userCount > 0;
+        return Boolean.TRUE.equals(commentExists);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
 
         return jdbcTemplate.query(
                 sql,
-                Map.of("text", text, "id", commentId, "postId", postId),
+                Map.of("text", text, "commentId", commentId, "postId", postId),
                 (resultSet, rowNum) -> Comment.builder()
                         .id(resultSet.getLong("id"))
                         .text(resultSet.getString("text"))

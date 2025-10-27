@@ -123,11 +123,13 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public int incrementLikes(long id) {
         return postRepository.incrementLikes(id);
     }
 
     @Override
+    @Transactional
     public void updateImage(long id, MultipartFile image) {
         checkExistencePost(id);
 
@@ -146,6 +148,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public byte[] getImage(long id) {
         checkExistencePost(id);
         return postRepository.getImage(id);

@@ -206,9 +206,9 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public boolean existsById(long id) {
-        String sql = "SELECT COUNT(*) FROM post WHERE id = :id";
-        Integer userCount = jdbcTemplate.queryForObject(sql, Map.of("id", id), Integer.class);
-        return userCount != null && userCount > 0;
+        String sql = "SELECT EXISTS(SELECT 1 FROM post WHERE id = :id)";
+        Boolean postExists = jdbcTemplate.queryForObject(sql, Map.of("id", id), Boolean.class);
+        return Boolean.TRUE.equals(postExists);
     }
 
     @Override

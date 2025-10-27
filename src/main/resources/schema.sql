@@ -34,3 +34,5 @@ CREATE TABLE IF NOT EXISTS post_tag
 );
 
 CREATE INDEX IF NOT EXISTS idx_comment_post_id ON comment (post_id);
+CREATE INDEX IF NOT EXISTS idx_post_created_at_id ON post (created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_post_title_lower ON post ((lower(title)));

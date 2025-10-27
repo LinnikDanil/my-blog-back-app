@@ -1,6 +1,8 @@
 package ru.practicum.blog.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,11 +31,14 @@ public class PostServiceImpl implements PostService {
     private static final String TAG_PREFIX = "#";
     private static final String TITLE_DELIMITER = " ";
 
+    private static final Logger log = LogManager.getLogger(PostServiceImpl.class);
+
     private final PostRepository postRepository;
 
     @Override
     @Transactional(readOnly = true)
     public PostsResponseDto getPosts(String search, int pageNumber, int pageSize) {
+        log.debug("Searching posts with query='{}', pageNumber={}, pageSize={}", search, pageNumber, pageSize);
         List<String> wordsForSearch = List.of(search.trim().split("\\s+"));
 
         Set<String> tags = new HashSet<>();
@@ -71,15 +76,18 @@ public class PostServiceImpl implements PostService {
         }
 
         if (posts.isEmpty()) {
+            log.debug("No posts found for query='{}'", search);
             return new PostsResponseDto(Collections.emptyList(), hasPrev, hasNext, lastPage);
         }
 
+        log.debug("Found {} posts for query='{}'", posts.size(), search);
         return PostMapper.toPostsResponseDto(posts, hasPrev, hasNext, lastPage);
     }
 
     @Override
     @Transactional(readOnly = true)
     public PostResponseDto getPost(long id) {
+        log.debug("Fetching post with id={}", id);
         Post post = postRepository.findPostById(id)
                 .orElseThrow(() -> new PostNotFoundException("Пост с id = %d не найден".formatted(id)));
 
@@ -89,11 +97,13 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostResponseDto createPost(PostRequestDto postRequestDto) {
+        log.info("Creating new post with title='{}'", postRequestDto.title());
         Post post = postRepository.createPost(
                 postRequestDto.title(),
                 postRequestDto.text(),
                 getNormalizedTags(postRequestDto.tags())
         );
+        log.debug("Post with id={} created", post.getId());
         return PostMapper.toPostResponseDto(post, post.getText());
     }
 
@@ -104,6 +114,7 @@ public class PostServiceImpl implements PostService {
             throw new PostBadRequestException("id поста в переменной пути и теле запроса должны совпадать.");
         }
 
+        log.info("Updating post with id={}", id);
         checkExistencePost(id);
         List<String> updatedTagNames = getNormalizedTags(postRequestDto.tags());
 
@@ -113,24 +124,28 @@ public class PostServiceImpl implements PostService {
                 postRequestDto.text(),
                 updatedTagNames
         );
+        log.debug("Post with id={} successfully updated", id);
         return PostMapper.toPostResponseDto(post, post.getText());
     }
 
     @Override
     @Transactional
     public void deletePost(long id) {
+        log.info("Deleting post with id={}", id);
         postRepository.deletePost(id);
     }
 
     @Override
     @Transactional
     public int incrementLikes(long id) {
+        log.info("Incrementing likes for post with id={}", id);
         return postRepository.incrementLikes(id);
     }
 
     @Override
     @Transactional
     public void updateImage(long id, MultipartFile image) {
+        log.info("Updating image for post with id={}", id);
         checkExistencePost(id);
 
         if (image.isEmpty()) {
@@ -140,9 +155,12 @@ public class PostServiceImpl implements PostService {
         try {
             boolean isUpdated = postRepository.updateImage(id, image.getBytes());
             if (!isUpdated) {
+                log.warn("Image for post with id={} was not updated because repository returned empty result", id);
                 throw new PostImageException("Ошибка обновления картинки");
             }
+            log.debug("Image for post with id={} updated", id);
         } catch (IOException ex) {
+            log.error("Failed to update image for post with id={}", id, ex);
             throw new PostImageException("Ошибка обновления картинки: " + ex.getMessage());
         }
     }
@@ -150,6 +168,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public byte[] getImage(long id) {
+        log.debug("Loading image for post with id={}", id);
         checkExistencePost(id);
         return postRepository.getImage(id);
     }

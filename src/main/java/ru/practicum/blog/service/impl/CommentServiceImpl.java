@@ -1,6 +1,8 @@
 package ru.practicum.blog.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.blog.domain.exception.CommentBadRequestException;
@@ -20,21 +22,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
+    private static final Logger log = LogManager.getLogger(CommentServiceImpl.class);
+
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<CommentResponseDto> getComments(long postId) {
+        log.debug("Fetching comments for postId={}", postId);
         checkExistencePost(postId);
 
         List<Comment> comments = commentRepository.findCommentsByPostId(postId);
+        log.debug("Found {} comments for postId={}", comments.size(), postId);
         return CommentMapper.toCommentDtoList(comments);
     }
 
     @Override
     @Transactional(readOnly = true)
     public CommentResponseDto getComment(long postId, long commentId) {
+        log.debug("Fetching comment with id={} for postId={}", commentId, postId);
         checkExistencePost(postId);
 
         Comment comment = commentRepository.findCommentById(postId, commentId)
@@ -47,6 +54,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentResponseDto createComment(long postId, CommentRequestDto commentRequestDto) {
+        log.info("Creating comment for postId={}", postId);
         checkExistencePost(postId);
 
         if (postId != commentRequestDto.postId()) {
@@ -55,6 +63,7 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = commentRepository.createComment(postId, commentRequestDto.text());
         postRepository.incrementComments(postId);
+        log.debug("Comment with id={} created for postId={}", comment.getId(), postId);
         return CommentMapper.toCommentDto(comment);
     }
 
@@ -70,17 +79,20 @@ public class CommentServiceImpl implements CommentService {
             throw new CommentBadRequestException("id комментария в переменной пути и теле запроса должны совпадать.");
         }
 
+        log.info("Updating comment with id={} for postId={}", commentId, postId);
         checkExistencePost(postId);
         checkExistenceComment(postId, commentId);
 
         Comment comment = commentRepository.updateComment(postId, commentId, commentRequestDto.text());
 
+        log.debug("Comment with id={} updated for postId={}", commentId, postId);
         return CommentMapper.toCommentDto(comment);
     }
 
     @Override
     @Transactional
     public void deleteComment(long postId, long commentId) {
+        log.info("Deleting comment with id={} for postId={}", commentId, postId);
         commentRepository.deleteComment(postId, commentId);
         postRepository.decrementComments(postId);
     }

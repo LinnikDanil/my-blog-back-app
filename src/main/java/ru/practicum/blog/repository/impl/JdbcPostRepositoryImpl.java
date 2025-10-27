@@ -1,6 +1,8 @@
 package ru.practicum.blog.repository.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -26,6 +28,8 @@ import java.util.Set;
 @Repository
 @RequiredArgsConstructor
 public class JdbcPostRepositoryImpl implements PostRepository {
+
+    private static final Logger log = LogManager.getLogger(JdbcPostRepositoryImpl.class);
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -414,12 +418,19 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Scheduled(cron = "0 0 0 * * 1") // каждый понедельник в 00:00
     private void cleanupUnusedTags() {
-        jdbcTemplate.update("""
+        log.info("Starting scheduled cleanup of unused tags");
+        int deletedTags = jdbcTemplate.update("""
                     DELETE FROM tag t
                     WHERE NOT EXISTS (
                       SELECT 1 FROM post_tag pt
                       WHERE pt.tag_id = t.id)
                 """, Map.of()
         );
+
+        if (deletedTags > 0) {
+            log.info("Cleanup finished, removed {} unused tags", deletedTags);
+        } else {
+            log.debug("Cleanup finished, no unused tags were removed");
+        }
     }
 }

@@ -41,6 +41,12 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.42")
     compileOnly("org.projectlombok:lombok:1.18.42")
 
+    // Logging
+    implementation("org.apache.logging.log4j:log4j-api:2.25.2")
+    implementation("org.apache.logging.log4j:log4j-core:2.25.2")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.2")
+    implementation("org.apache.logging.log4j:log4j-jcl:2.25.2")
+
     // Test
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

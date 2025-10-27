@@ -72,7 +72,7 @@ public class PostController {
         postService.updateImage(id, image);
     }
 
-    @GetMapping("/{id}/image")
+    @GetMapping(path = "/{id}/image", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public byte[] getImage(@PathVariable("id") long id) {
         return postService.getImage(id);
     }

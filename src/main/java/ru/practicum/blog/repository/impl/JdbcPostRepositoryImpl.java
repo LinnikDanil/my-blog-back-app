@@ -110,7 +110,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
         );
 
         if (postId == null) {
-            throw new PostDbException("Ошибка при создании поста");
+            throw new PostDbException("Failed to create post.");
         }
 
         if (!tagNames.isEmpty()) {
@@ -124,7 +124,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
             insertPostIdTagIds(tagIds, postId);
         }
 
-        return findPostById(postId).orElseThrow(() -> new PostDbException("Ошибка при создании поста"));
+        return findPostById(postId).orElseThrow(() -> new PostDbException("Failed to create post."));
     }
 
     @Override
@@ -162,7 +162,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
             insertPostIdTagIds(updatedTagIds, postId);
         }
 
-        return findPostById(postId).orElseThrow(() -> new PostDbException("Ошибка при обновлении поста"));
+        return findPostById(postId).orElseThrow(() -> new PostDbException("Failed to update post."));
     }
 
     @Override
@@ -231,7 +231,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                         (rs, rn) -> rs.getInt("likes_count")
                 ).stream()
                 .findFirst()
-                .orElseThrow(() -> new PostNotFoundException("Поста с id = %d не существует".formatted(id)));
+                .orElseThrow(() -> new PostNotFoundException("Post with id = %d does not exist.".formatted(id)));
     }
 
     @Override
@@ -249,7 +249,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                 ).stream()
                 .filter(Objects::nonNull)
                 .findFirst()
-                .orElseThrow(() -> new PostImageException("Картинка для поста с id = %d не загружена.".formatted(id)));
+                .orElseThrow(() -> new PostImageException("Image for post with id = %d is not available.".formatted(id)));
     }
 
     @Override

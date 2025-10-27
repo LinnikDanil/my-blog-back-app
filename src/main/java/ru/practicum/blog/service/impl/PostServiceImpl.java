@@ -72,7 +72,7 @@ public class PostServiceImpl implements PostService {
         boolean hasNext = pageNumber < lastPage;
 
         if (lastPage < pageNumber) {
-            throw new PostBadRequestException("Запрашиваемая страница превышает количество возможных страниц.");
+            throw new PostBadRequestException("Requested page exceeds the total number of pages.");
         }
 
         if (posts.isEmpty()) {
@@ -89,7 +89,7 @@ public class PostServiceImpl implements PostService {
     public PostResponseDto getPost(long id) {
         log.debug("Fetching post with id={}", id);
         Post post = postRepository.findPostById(id)
-                .orElseThrow(() -> new PostNotFoundException("Пост с id = %d не найден".formatted(id)));
+                .orElseThrow(() -> new PostNotFoundException("Post with id = %d was not found.".formatted(id)));
 
         return PostMapper.toPostResponseDto(post, post.getText());
     }
@@ -111,7 +111,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostResponseDto updatePost(long id, PostRequestDto postRequestDto) {
         if (postRequestDto.id() != null && id != postRequestDto.id()) {
-            throw new PostBadRequestException("id поста в переменной пути и теле запроса должны совпадать.");
+            throw new PostBadRequestException("Post id in the path and request body must match.");
         }
 
         log.info("Updating post with id={}", id);
@@ -149,19 +149,19 @@ public class PostServiceImpl implements PostService {
         checkExistencePost(id);
 
         if (image.isEmpty()) {
-            throw new PostImageException("Картинка не может быть пустой");
+            throw new PostImageException("Image cannot be empty.");
         }
 
         try {
             boolean isUpdated = postRepository.updateImage(id, image.getBytes());
             if (!isUpdated) {
                 log.warn("Image for post with id={} was not updated because repository returned empty result", id);
-                throw new PostImageException("Ошибка обновления картинки");
+                throw new PostImageException("Failed to update image.");
             }
             log.debug("Image for post with id={} updated", id);
         } catch (IOException ex) {
             log.error("Failed to update image for post with id={}", id, ex);
-            throw new PostImageException("Ошибка обновления картинки: " + ex.getMessage());
+            throw new PostImageException("Failed to update image: " + ex.getMessage());
         }
     }
 
@@ -185,7 +185,7 @@ public class PostServiceImpl implements PostService {
 
     private void checkExistencePost(long postId) {
         if (!postRepository.existsById(postId)) {
-            throw new PostNotFoundException("Пост с id = %d не найден".formatted(postId));
+            throw new PostNotFoundException("Post with id = %d was not found.".formatted(postId));
         }
     }
 }

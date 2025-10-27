@@ -46,7 +46,7 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = commentRepository.findCommentById(postId, commentId)
                 .orElseThrow(() -> new CommentNotFoundException(
-                        "Комментарий с id = %d у поста id = %d не найден".formatted(commentId, postId)));
+                        "Comment with id = %d for post id = %d was not found.".formatted(commentId, postId)));
 
         return CommentMapper.toCommentDto(comment);
     }
@@ -58,7 +58,7 @@ public class CommentServiceImpl implements CommentService {
         checkExistencePost(postId);
 
         if (postId != commentRequestDto.postId()) {
-            throw new CommentBadRequestException("id поста в переменной пути и теле запроса должны совпадать.");
+            throw new CommentBadRequestException("Post id in the path and request body must match.");
         }
 
         Comment comment = commentRepository.createComment(postId, commentRequestDto.text());
@@ -72,11 +72,11 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponseDto updateComment(long postId, long commentId, CommentRequestDto commentRequestDto) {
 
         if (postId != commentRequestDto.postId()) {
-            throw new CommentBadRequestException("id поста в переменной пути и теле запроса должны совпадать.");
+            throw new CommentBadRequestException("Post id in the path and request body must match.");
         }
 
         if (commentRequestDto.id() == null || commentRequestDto.id() != commentId) {
-            throw new CommentBadRequestException("id комментария в переменной пути и теле запроса должны совпадать.");
+            throw new CommentBadRequestException("Comment id in the path and request body must match.");
         }
 
         log.info("Updating comment with id={} for postId={}", commentId, postId);
@@ -99,13 +99,13 @@ public class CommentServiceImpl implements CommentService {
 
     private void checkExistencePost(long postId) {
         if (!postRepository.existsById(postId)) {
-            throw new PostNotFoundException("Пост с id = %d не найден".formatted(postId));
+            throw new PostNotFoundException("Post with id = %d was not found.".formatted(postId));
         }
     }
 
     private void checkExistenceComment(long postId, long commentId) {
         if (!commentRepository.existsById(postId, commentId)) {
-            throw new CommentNotFoundException("Комментарий с id = %d у поста с id = %d не найден"
+            throw new CommentNotFoundException("Comment with id = %d for post with id = %d was not found."
                     .formatted(commentId, postId)
             );
         }

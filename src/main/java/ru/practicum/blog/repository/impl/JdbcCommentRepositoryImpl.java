@@ -54,7 +54,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
                         .text(resultSet.getString("text"))
                         .postId(resultSet.getLong("post_id"))
                         .build()
-        ).stream().findFirst().orElseThrow(() -> new CommentDbException("Ошибка при создании комментария"));
+        ).stream().findFirst().orElseThrow(() -> new CommentDbException("Failed to create comment."));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
                         .text(resultSet.getString("text"))
                         .postId(resultSet.getLong("post_id"))
                         .build()
-        ).stream().findFirst().orElseThrow(() -> new CommentDbException("Ошибка при обновлении комментария"));
+        ).stream().findFirst().orElseThrow(() -> new CommentDbException("Failed to update comment."));
     }
 
     @Override
@@ -96,7 +96,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
                 Map.of("postId", postId, "commentId", commentId)
         );
         if (deleted == 0) {
-            throw new CommentNotFoundException("Комментарий с id = %d у поста с id = %d не существует."
+            throw new CommentNotFoundException("Comment with id = %d for post with id = %d does not exist."
                     .formatted(commentId, postId));
         }
     }

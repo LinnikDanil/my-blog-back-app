@@ -1,10 +1,10 @@
-package ru.practicum.blog.model.mapper;
+package ru.practicum.blog.web.mapper;
 
 import lombok.experimental.UtilityClass;
-import ru.practicum.blog.model.Post;
-import ru.practicum.blog.model.Tag;
-import ru.practicum.blog.model.dto.PostResponseDto;
-import ru.practicum.blog.model.dto.PostsResponseDto;
+import ru.practicum.blog.domain.model.Post;
+import ru.practicum.blog.domain.model.Tag;
+import ru.practicum.blog.web.dto.PostResponseDto;
+import ru.practicum.blog.web.dto.PostsResponseDto;
 
 import java.util.ArrayList;
 import java.util.List;

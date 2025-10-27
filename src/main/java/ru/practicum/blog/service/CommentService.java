@@ -1,7 +1,7 @@
 package ru.practicum.blog.service;
 
-import ru.practicum.blog.model.dto.CommentRequestDto;
-import ru.practicum.blog.model.dto.CommentResponseDto;
+import ru.practicum.blog.web.dto.CommentRequestDto;
+import ru.practicum.blog.web.dto.CommentResponseDto;
 
 import java.util.List;
 

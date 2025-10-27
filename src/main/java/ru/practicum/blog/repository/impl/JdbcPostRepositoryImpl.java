@@ -7,11 +7,11 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
-import ru.practicum.blog.exception.PostDbException;
-import ru.practicum.blog.exception.PostImageException;
-import ru.practicum.blog.exception.PostNotFoundException;
-import ru.practicum.blog.model.Post;
-import ru.practicum.blog.model.Tag;
+import ru.practicum.blog.domain.exception.PostDbException;
+import ru.practicum.blog.domain.exception.PostImageException;
+import ru.practicum.blog.domain.exception.PostNotFoundException;
+import ru.practicum.blog.domain.model.Post;
+import ru.practicum.blog.domain.model.Tag;
 import ru.practicum.blog.repository.PostRepository;
 
 import java.util.ArrayList;

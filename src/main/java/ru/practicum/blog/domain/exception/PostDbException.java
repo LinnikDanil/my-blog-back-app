@@ -1,4 +1,4 @@
-package ru.practicum.blog.exception;
+package ru.practicum.blog.domain.exception;
 
 public class PostDbException extends RuntimeException {
     private String message;

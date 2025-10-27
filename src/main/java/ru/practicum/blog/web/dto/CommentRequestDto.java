@@ -1,4 +1,4 @@
-package ru.practicum.blog.model.dto;
+package ru.practicum.blog.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -3,9 +3,9 @@ package ru.practicum.blog.repository.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.practicum.blog.exception.CommentDbException;
-import ru.practicum.blog.exception.CommentNotFoundException;
-import ru.practicum.blog.model.Comment;
+import ru.practicum.blog.domain.exception.CommentDbException;
+import ru.practicum.blog.domain.exception.CommentNotFoundException;
+import ru.practicum.blog.domain.model.Comment;
 import ru.practicum.blog.repository.CommentRepository;
 
 import java.util.List;

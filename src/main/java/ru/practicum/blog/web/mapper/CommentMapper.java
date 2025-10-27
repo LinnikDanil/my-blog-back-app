@@ -1,7 +1,7 @@
-package ru.practicum.blog.model.mapper;
+package ru.practicum.blog.web.mapper;
 
-import ru.practicum.blog.model.Comment;
-import ru.practicum.blog.model.dto.CommentResponseDto;
+import ru.practicum.blog.domain.model.Comment;
+import ru.practicum.blog.web.dto.CommentResponseDto;
 
 import java.util.Collections;
 import java.util.List;

@@ -1,4 +1,4 @@
-package ru.practicum.blog.configuration;
+package ru.practicum.blog.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

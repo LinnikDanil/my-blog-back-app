@@ -1,9 +1,9 @@
 package ru.practicum.blog.service;
 
 import org.springframework.web.multipart.MultipartFile;
-import ru.practicum.blog.model.dto.PostRequestDto;
-import ru.practicum.blog.model.dto.PostResponseDto;
-import ru.practicum.blog.model.dto.PostsResponseDto;
+import ru.practicum.blog.web.dto.PostRequestDto;
+import ru.practicum.blog.web.dto.PostResponseDto;
+import ru.practicum.blog.web.dto.PostsResponseDto;
 
 public interface PostService {
     PostsResponseDto getPosts(String search, int pageNumber, int pageSize);

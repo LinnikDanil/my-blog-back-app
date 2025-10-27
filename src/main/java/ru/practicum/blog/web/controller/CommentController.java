@@ -1,4 +1,4 @@
-package ru.practicum.blog.controller;
+package ru.practicum.blog.web.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.blog.model.dto.CommentRequestDto;
-import ru.practicum.blog.model.dto.CommentResponseDto;
 import ru.practicum.blog.service.CommentService;
+import ru.practicum.blog.web.dto.CommentRequestDto;
+import ru.practicum.blog.web.dto.CommentResponseDto;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package ru.practicum.blog.configuration;
+package ru.practicum.blog.config;
 
 import org.postgresql.Driver;
 import org.springframework.beans.factory.annotation.Value;

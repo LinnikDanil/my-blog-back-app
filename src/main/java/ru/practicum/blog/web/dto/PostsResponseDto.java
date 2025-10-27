@@ -1,4 +1,4 @@
-package ru.practicum.blog.model.dto;
+package ru.practicum.blog.web.dto;
 
 import java.util.List;
 

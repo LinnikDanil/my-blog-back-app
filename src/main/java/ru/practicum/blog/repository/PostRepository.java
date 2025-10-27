@@ -1,6 +1,6 @@
 package ru.practicum.blog.repository;
 
-import ru.practicum.blog.model.Post;
+import ru.practicum.blog.domain.model.Post;
 
 import java.util.List;
 import java.util.Optional;

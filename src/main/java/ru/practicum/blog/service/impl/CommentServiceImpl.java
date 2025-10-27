@@ -2,16 +2,16 @@ package ru.practicum.blog.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.blog.exception.CommentBadRequestException;
-import ru.practicum.blog.exception.CommentNotFoundException;
-import ru.practicum.blog.exception.PostNotFoundException;
-import ru.practicum.blog.model.Comment;
-import ru.practicum.blog.model.dto.CommentRequestDto;
-import ru.practicum.blog.model.dto.CommentResponseDto;
-import ru.practicum.blog.model.mapper.CommentMapper;
+import ru.practicum.blog.domain.exception.CommentBadRequestException;
+import ru.practicum.blog.domain.exception.CommentNotFoundException;
+import ru.practicum.blog.domain.exception.PostNotFoundException;
+import ru.practicum.blog.domain.model.Comment;
 import ru.practicum.blog.repository.CommentRepository;
 import ru.practicum.blog.repository.PostRepository;
 import ru.practicum.blog.service.CommentService;
+import ru.practicum.blog.web.dto.CommentRequestDto;
+import ru.practicum.blog.web.dto.CommentResponseDto;
+import ru.practicum.blog.web.mapper.CommentMapper;
 
 import java.util.List;
 

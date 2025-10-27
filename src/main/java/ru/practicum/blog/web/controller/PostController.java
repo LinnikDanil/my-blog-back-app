@@ -1,4 +1,4 @@
-package ru.practicum.blog.controller;
+package ru.practicum.blog.web.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import ru.practicum.blog.model.dto.PostRequestDto;
-import ru.practicum.blog.model.dto.PostResponseDto;
-import ru.practicum.blog.model.dto.PostsResponseDto;
 import ru.practicum.blog.service.PostService;
+import ru.practicum.blog.web.dto.PostRequestDto;
+import ru.practicum.blog.web.dto.PostResponseDto;
+import ru.practicum.blog.web.dto.PostsResponseDto;
 
 @RestController
 @RequestMapping("/api/posts")

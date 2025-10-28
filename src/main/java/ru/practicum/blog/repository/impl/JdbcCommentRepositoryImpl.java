@@ -7,6 +7,7 @@ import ru.practicum.blog.domain.exception.CommentDbException;
 import ru.practicum.blog.domain.exception.CommentNotFoundException;
 import ru.practicum.blog.domain.model.Comment;
 import ru.practicum.blog.repository.CommentRepository;
+import ru.practicum.blog.repository.util.SqlConstants;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
     @Override
     public List<Comment> findCommentsByPostId(long postId) {
         return jdbcTemplate.query(
-                "SELECT id, text, post_id FROM comment WHERE post_id = :postId ORDER BY created_at DESC, id DESC",
+                SqlConstants.FIND_COMMENTS_BY_POST_ID,
                 Map.of("postId", postId),
                 (resultSet, rowNum) -> Comment.builder()
                         .id(resultSet.getLong("id"))
@@ -34,7 +35,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
     @Override
     public Optional<Comment> findCommentById(long postId, long commentId) {
         return jdbcTemplate.query(
-                "SELECT id, text, post_id FROM comment WHERE id = :commentId AND post_id = :postId",
+                SqlConstants.FIND_COMMENT_BY_ID,
                 Map.of("commentId", commentId, "postId", postId),
                 (resultSet, rowNum) -> Comment.builder()
                         .id(resultSet.getLong("id"))
@@ -47,7 +48,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
     @Override
     public Comment createComment(long postId, String text) {
         return jdbcTemplate.query(
-                "INSERT INTO comment (text, post_id) VALUES(:text, :postId) RETURNING id, text, post_id",
+                SqlConstants.CREATE_COMMENT,
                 Map.of("text", text, "postId", postId),
                 (resultSet, rowNum) -> Comment.builder()
                         .id(resultSet.getLong("id"))
@@ -60,7 +61,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
     @Override
     public boolean existsById(long postId, long commentId) {
         Boolean commentExists = jdbcTemplate.queryForObject(
-                "SELECT EXISTS(SELECT 1 FROM comment WHERE id = :commentId AND post_id = :postId)",
+                SqlConstants.EXISTS_COMMENT,
                 Map.of("commentId", commentId, "postId", postId),
                 Boolean.class
         );
@@ -69,17 +70,8 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
 
     @Override
     public Comment updateComment(long postId, long commentId, String text) {
-        String sql = """
-                UPDATE comment
-                SET text = :text,
-                updated_at = CURRENT_TIMESTAMP
-                WHERE id = :commentId
-                    AND post_id = :postId
-                RETURNING id, text, post_id
-                """;
-
         return jdbcTemplate.query(
-                sql,
+                SqlConstants.UPDATE_COMMENT,
                 Map.of("text", text, "commentId", commentId, "postId", postId),
                 (resultSet, rowNum) -> Comment.builder()
                         .id(resultSet.getLong("id"))
@@ -92,7 +84,7 @@ public class JdbcCommentRepositoryImpl implements CommentRepository {
     @Override
     public void deleteComment(long postId, long commentId) {
         int deleted = jdbcTemplate.update(
-                "DELETE FROM comment WHERE post_id = :postId AND id = :commentId",
+                SqlConstants.DELETE_COMMENT,
                 Map.of("postId", postId, "commentId", commentId)
         );
         if (deleted == 0) {

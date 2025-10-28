@@ -15,6 +15,7 @@ import ru.practicum.blog.domain.exception.PostNotFoundException;
 import ru.practicum.blog.domain.model.Post;
 import ru.practicum.blog.domain.model.Tag;
 import ru.practicum.blog.repository.PostRepository;
+import ru.practicum.blog.repository.util.SqlConstants;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,15 +42,8 @@ public class JdbcPostRepositoryImpl implements PostRepository {
             return Collections.emptyList();
         }
 
-        String sql = """
-                SELECT id, title, text, likes_count, comments_count
-                FROM post
-                WHERE id IN (:postIds)
-                ORDER BY created_at DESC, id DESC
-                """;
-
         List<Post> posts = jdbcTemplate.query(
-                sql,
+                SqlConstants.FIND_POSTS_BY_IDS,
                 Map.of("postIds", postIds),
                 (resultSet, rowNum) -> Post.builder()
                         .id(resultSet.getLong("id"))
@@ -72,14 +66,8 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public Optional<Post> findPostById(long id) {
-        String sql = """
-                SELECT id, title, text, likes_count, comments_count
-                FROM post
-                WHERE id = :postId
-                """;
-
         Post post = jdbcTemplate.query(
-                sql,
+                SqlConstants.FIND_POST_BY_ID,
                 Map.of("postId", id),
                 (resultSet, rowNum) -> Post.builder()
                         .id(resultSet.getLong("id"))
@@ -104,7 +92,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     public Post createPost(String title, String text, List<String> tagNames) {
         // Сохраняем новый пост
         Long postId = jdbcTemplate.queryForObject(
-                "INSERT INTO post (title, text) VALUES(:title, :text) RETURNING id",
+                SqlConstants.CREATE_POST,
                 Map.of("title", title, "text", text),
                 Long.class
         );
@@ -129,18 +117,10 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public Post updatePost(long postId, String title, String text, List<String> updatedTagNames) {
-        String sqlUpdatePost = """
-                UPDATE post
-                SET title = :title,
-                text = :text,
-                updated_at = CURRENT_TIMESTAMP
-                WHERE id = :postId
-                """;
-
         MapSqlParameterSource parameterSourceForUpdatePost = new MapSqlParameterSource(
                 Map.of("title", title, "text", text, "postId", postId));
         //Обновляем сам пост
-        jdbcTemplate.update(sqlUpdatePost, parameterSourceForUpdatePost);
+        jdbcTemplate.update(SqlConstants.UPDATE_POST, parameterSourceForUpdatePost);
 
         // Если в обновлённом посте тегов нет, то очищаем все теги поста
         if (updatedTagNames.isEmpty()) {
@@ -154,7 +134,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
             // Удаляем неиспользуемые теги
             jdbcTemplate.update(
-                    "DELETE FROM post_tag WHERE post_id = :postId AND tag_id NOT IN (:tagIds)",
+                    SqlConstants.DELETE_UNUSED_TAGS,
                     Map.of("postId", postId, "tagIds", updatedTagIds)
             );
 
@@ -167,7 +147,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public void deletePost(long id) {
-        int deleted = jdbcTemplate.update("DELETE FROM post WHERE id = :id", Map.of("id", id));
+        int deleted = jdbcTemplate.update(SqlConstants.DELETE_POST, Map.of("id", id));
         if (deleted == 0) {
             throw new PostNotFoundException("Пост с id = %d не существует.".formatted(id));
         }
@@ -181,25 +161,9 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                 .addValue("title", titleSubstring);
         String sql;
         if (tagsCount == 0) {
-            sql = """
-                    SELECT COUNT(*)
-                    FROM post
-                    WHERE :title = '' OR LOWER(title) LIKE CONCAT('%',:title,'%')
-                    """;
+            sql = SqlConstants.COUNT_POSTS_NO_TAGS;
         } else {
-            sql = """
-                    SELECT COUNT(*)
-                    FROM post
-                    WHERE (:title = '' OR LOWER(title) LIKE CONCAT('%',:title,'%'))
-                        AND id IN (
-                            SELECT pt.post_id
-                            FROM post_tag pt
-                            JOIN tag t ON t.id = pt.tag_id
-                            WHERE t.name IN (:tags)
-                            GROUP BY pt.post_id
-                            HAVING COUNT(t.name) = :tagsCount
-                        )
-                    """;
+            sql = SqlConstants.COUNT_POSTS_WITH_TAGS;
             params.addValue("tags", tags);
             params.addValue("tagsCount", tagsCount);
         }
@@ -210,23 +174,14 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public boolean existsById(long id) {
-        String sql = "SELECT EXISTS(SELECT 1 FROM post WHERE id = :id)";
-        Boolean postExists = jdbcTemplate.queryForObject(sql, Map.of("id", id), Boolean.class);
+        Boolean postExists = jdbcTemplate.queryForObject(SqlConstants.EXISTS_BY_ID, Map.of("id", id), Boolean.class);
         return Boolean.TRUE.equals(postExists);
     }
 
     @Override
     public int incrementLikes(long id) {
-        String sql = """
-                UPDATE post
-                SET likes_count = (likes_count + 1),
-                updated_at = CURRENT_TIMESTAMP
-                WHERE id = :postId
-                RETURNING likes_count
-                """;
-
         return jdbcTemplate.query(
-                        sql,
+                        SqlConstants.INCREMENT_LIKES,
                         Map.of("postId", id),
                         (rs, rn) -> rs.getInt("likes_count")
                 ).stream()
@@ -236,14 +191,14 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public boolean updateImage(long id, byte[] image) {
-        int updated = jdbcTemplate.update("UPDATE post SET image = :image WHERE id = :id", Map.of("image", image, "id", id));
+        int updated = jdbcTemplate.update(SqlConstants.UPDATE_IMAGE, Map.of("image", image, "id", id));
         return updated > 0;
     }
 
     @Override
     public byte[] getImage(long id) {
         return jdbcTemplate.query(
-                        "SELECT image FROM post WHERE id = :id",
+                        SqlConstants.GET_IMAGE,
                         Map.of("id", id),
                         (rs, rn) -> rs.getBytes("image")
                 ).stream()
@@ -254,26 +209,12 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public void incrementComments(long postId) {
-        String sql = """
-                UPDATE post
-                SET comments_count = (comments_count + 1),
-                updated_at = CURRENT_TIMESTAMP
-                WHERE id = :postId
-                """;
-
-        jdbcTemplate.update(sql, Map.of("postId", postId));
+        jdbcTemplate.update(SqlConstants.INCREMENT_COMMENTS, Map.of("postId", postId));
     }
 
     @Override
     public void decrementComments(long postId) {
-        String sql = """
-                UPDATE post
-                SET comments_count = (comments_count - 1),
-                updated_at = CURRENT_TIMESTAMP
-                WHERE id = :postId
-                """;
-
-        jdbcTemplate.update(sql, Map.of("postId", postId));
+        jdbcTemplate.update(SqlConstants.DECREMENT_COMMENTS, Map.of("postId", postId));
     }
 
     private List<Long> findPostIds(
@@ -289,29 +230,9 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                 .addValue("offset", offset);
         String sql;
         if (tagsCount == 0) {
-            sql = """
-                    SELECT id
-                    FROM post
-                    WHERE :title = '' OR LOWER(title) LIKE CONCAT('%',:title,'%')
-                    ORDER BY created_at DESC, id DESC
-                    LIMIT :limit OFFSET :offset
-                    """;
+            sql = SqlConstants.FIND_POST_IDS_NO_TAGS;
         } else {
-            sql = """
-                    SELECT id
-                    FROM post
-                    WHERE (:title = '' OR LOWER(title) LIKE CONCAT('%',:title,'%'))
-                        AND id IN (
-                            SELECT pt.post_id
-                            FROM post_tag pt
-                            JOIN tag t ON t.id = pt.tag_id
-                            WHERE t.name IN (:tags)
-                            GROUP BY pt.post_id
-                            HAVING COUNT(t.name) = :tagsCount
-                        )
-                    ORDER BY created_at DESC, id DESC
-                    LIMIT :limit OFFSET :offset
-                    """;
+            sql = SqlConstants.FIND_POST_IDS_WITH_TAGS;
             params.addValue("tags", tags);
             params.addValue("tagsCount", tagsCount);
         }
@@ -324,15 +245,8 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     }
 
     private List<Tag> findTagsByPostId(long id) {
-        String sql = """
-                SELECT pt.post_id, t.id, t.name
-                FROM tag t
-                JOIN post_tag pt ON t.id = pt.tag_id
-                WHERE pt.post_id = :postId
-                """;
-
         List<Tag> tags = jdbcTemplate.query(
-                sql,
+                SqlConstants.FIND_TAGS_BY_POST_ID,
                 Map.of("postId", id),
                 (resultSet, rowNum) -> Tag.builder()
                         .id(resultSet.getLong("id"))
@@ -347,15 +261,8 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     }
 
     private Map<Long, List<Tag>> findTagsByPostIds(List<Long> postIds) {
-        String sql = """
-                SELECT pt.post_id, t.id, t.name
-                FROM tag t
-                JOIN post_tag pt ON t.id = pt.tag_id
-                WHERE pt.post_id IN (:postIds)
-                """;
-
         return jdbcTemplate.query(
-                sql,
+                SqlConstants.FIND_TAGS_BY_POST_IDS,
                 Map.of("postIds", postIds),
                 resultSet -> {
                     Map<Long, List<Tag>> result = new HashMap<>();
@@ -375,8 +282,6 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     }
 
     private void insertBatchTags(List<String> tagNames) {
-        String sqlInsertTag = "INSERT INTO tag (name) VALUES(:name) ON CONFLICT (name) DO NOTHING";
-
         SqlParameterSource[] tagsForBatch = SqlParameterSourceUtils.createBatch(
                 tagNames.stream()
                         .map(tag -> Map.<String, Object>of("name", tag))
@@ -384,34 +289,30 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                         .toArray()
         );
         // Сохраняем все новые теги в таблицу тегов
-        jdbcTemplate.batchUpdate(sqlInsertTag, tagsForBatch);
+        jdbcTemplate.batchUpdate(SqlConstants.INSERT_TAG, tagsForBatch);
     }
 
     private List<Long> findTagIdsByNames(List<String> tagNames) {
-        String sqlFindTagIds = "SELECT id FROM tag WHERE name IN (:names)";
-
         return jdbcTemplate.query(
-                sqlFindTagIds,
+                SqlConstants.FIND_TAG_IDS_BY_NAMES,
                 Map.of("names", tagNames),
                 (resultSet, rowNum) -> resultSet.getLong("id")
         );
     }
 
     private void insertPostIdTagIds(List<Long> tagIds, long postId) {
-        String sqlInsertToPostTag = "INSERT INTO post_tag (post_id, tag_id) VALUES(:postId, :tagId) ON CONFLICT DO NOTHING";
-
         SqlParameterSource[] postTagForBatch = SqlParameterSourceUtils.createBatch(
                 tagIds.stream()
                         .map(tagId -> Map.<String, Object>of("postId", postId, "tagId", tagId))
                         .map(Map.class::cast)
                         .toArray()
         );
-        jdbcTemplate.batchUpdate(sqlInsertToPostTag, postTagForBatch);
+        jdbcTemplate.batchUpdate(SqlConstants.INSERT_POST_TAG, postTagForBatch);
     }
 
     private void deleteTagsForPost(long postId) {
         jdbcTemplate.update(
-                "DELETE FROM post_tag WHERE post_id = :postId",
+                SqlConstants.DELETE_POST_TAGS,
                 Map.of("postId", postId)
         );
     }
@@ -419,13 +320,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     @Scheduled(cron = "0 0 0 * * 1") // каждый понедельник в 00:00
     private void cleanupUnusedTags() {
         log.info("Starting scheduled cleanup of unused tags");
-        int deletedTags = jdbcTemplate.update("""
-                    DELETE FROM tag t
-                    WHERE NOT EXISTS (
-                      SELECT 1 FROM post_tag pt
-                      WHERE pt.tag_id = t.id)
-                """, Map.of()
-        );
+        int deletedTags = jdbcTemplate.update(SqlConstants.CLEANUP_UNUSED_TAGS, Map.of());
 
         if (deletedTags > 0) {
             log.info("Cleanup finished, removed {} unused tags", deletedTags);

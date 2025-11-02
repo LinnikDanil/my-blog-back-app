@@ -318,7 +318,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     }
 
     @Scheduled(cron = "0 0 0 * * 1") // каждый понедельник в 00:00
-    private void cleanupUnusedTags() {
+    void cleanupUnusedTags() {
         log.info("Starting scheduled cleanup of unused tags");
         int deletedTags = jdbcTemplate.update(SqlConstants.CLEANUP_UNUSED_TAGS, Map.of());
 

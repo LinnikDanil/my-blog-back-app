@@ -1,7 +1,3 @@
-SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/postgres?currentSchema=blog_app
-SPRING_DATASOURCE_USERNAME: postgres
-SPRING_DATASOURCE_PASSWORD: postgres
-
 SPRING_CORS_ALLOWED_ORIGINS: http://localhost
 
 LOGGING_PRACTICUM_LEVEL: DEBUG

@@ -1,123 +1,105 @@
-# my-blog-back-app — проектная работа спринта 3
+# my-blog-back-app — проектная работа спринта 4
 
-Бэкенд приложения‑блога на **Java 21** с использованием **Spring Framework 6.2** (без Spring Boot), 
-базой данных **PostgreSQL**, сборкой **Gradle**, деплоем в сервлет‑контейнер **Tomcat**, и покрытием **JUnit 6** тестами.
+Бэкенд приложение‑блог на **Java 21** и **Spring Boot 3.5.7**. 
+Приложение собирается в **исполняемый Jar** с помощью **Maven** и запускается во встроенном сервлет‑контейнере
+(Spring Boot Starter Web). В качестве базы данных используется **PostgreSQL**.
 
 ---
 
 ## Содержание
 
-* [Цели проекта](#цели-проекта)
-* [Архитектура](#архитектура)
-* [Фронтенд: запуск в Docker](#фронтенд-запуск-в-docker)
-* [Конфигурация приложения](#конфигурация-приложения)
-* [Бэкенд: сборка и запуск](#бэкенд-сборка-и-запуск)
-* [Сборка WAR и деплой в Tomcat](#сборка-war-и-деплой-в-tomcat)
-* [Контракты REST API](#контракты-rest-api)
+* [Функциональность](#функциональность)
+* [Требования к окружению](#требования-к-окружению)
+* [Конфигурация](#конфигурация)
+* [Сборка и запуск](#сборка-и-запуск)
 * [Тестирование](#тестирование)
+* [Контракты REST API](#контракты-rest-api)
 * [Структура проекта](#структура-проекта)
 
 ---
 
-## Цели проекта
+## Функциональность
 
-1. Реализовать бэкенд блога на Java 21 и Spring Framework (без Spring Boot).
-2. Использовать **PostgreSQL** для хранения постов и комментариев.
-3. Обеспечить REST‑интерфейс для фронтенда.
-4. Собрать WAR‑файл Gradle’ом и задеплоить его в Tomcat.
-5. Покрыть приложение тестами (JUnit 6, Spring Test, WebMvc, Testcontainers для интеграционных тестов).
-
----
-
-## Архитектура
-
-```
-Браузер ⇄ Nginx (frontend, :80) ⇄ Бэкенд (Tomcat, :8080) ⇄ PostgreSQL (БД)
-```
-
-* **Фронтенд** работает в контейнере Nginx, отдаёт статические файлы.
-* **Бэкенд** — Spring MVC + Spring Data JDBC, развёрнутый в Tomcat.
-* **БД** — PostgreSQL.
+* REST‑бэкенд для фронтенда блога: посты, комментарии, лайки, изображения.
+* Хранение данных в PostgreSQL, инициализация схемы через `schema.sql`.
+* Конфигурация через Spring Boot и файлы `application.yaml` / переменные окружения.
+* Юнит‑ и интеграционные тесты на Spring Boot Test и Testcontainers.
 
 ---
 
-## Фронтенд: запуск в Docker
+## Требования к окружению
 
-```bash
-cd path/to/frontend
-
-docker compose up -d
-```
-
-Проверить:
-
-```bash
-docker ps
-```
-
-Фронтенд будет доступен по адресу [http://localhost:80/](http://localhost:80/)
-
-Остановить:
-
-```bash
-docker compose down
-```
+* **JDK 21**
+* **Maven 3.9+** (в репозитории есть `mvnw`/`mvnw.cmd` для запуска без установленного Maven)
+* Docker — обязателен для интеграционных тестов, использующих Testcontainers.
+* PostgreSQL 14+ (локально или в контейнере) для запуска приложения.
 
 ---
 
-## Конфигурация приложения
+## Конфигурация
 
-Все значения считываются из `src/main/resources/application.properties`, который переопределяет параметры через переменные окружения:
+Основные параметры задаются через переменные окружения, которые читает `src/main/resources/application.yaml`:
 
-| Переменная окружения | Описание |
+| Переменная | Назначение |
 | --- | --- |
 | `SPRING_DATASOURCE_URL` | JDBC‑строка подключения к PostgreSQL. |
 | `SPRING_DATASOURCE_USERNAME` | Пользователь базы данных. |
 | `SPRING_DATASOURCE_PASSWORD` | Пароль пользователя базы данных. |
 | `SPRING_CORS_ALLOWED_ORIGINS` | Разрешённые источники для CORS (через запятую). |
+| `LOGGING_PRACTICUM_LEVEL` | Уровень логирования пакета `ru.practicum`. |
 
-Для локальной разработки ориентируйтесь на файл `src/main/resources/application.local` и экспортируйте значения как переменные окружения, например:
+Для локального запуска можно взять значения из `src/main/resources/application-local.yaml` и экспортировать их в оболочке:
 
 ```bash
 export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/postgres?currentSchema=blog_app"
 export SPRING_DATASOURCE_USERNAME="postgres"
 export SPRING_DATASOURCE_PASSWORD="postgres"
 export SPRING_CORS_ALLOWED_ORIGINS="http://localhost"
+export LOGGING_PRACTICUM_LEVEL="DEBUG"
 ```
-
-После экспорта переменных перезапустите приложение или пересоберите проект.
 
 ---
 
-## Бэкенд: сборка и запуск
+## Сборка и запуск
 
-Требуется **JDK 21** и **Gradle 8.13** (или другая совместимая версии).
-
-### Команды сборки и запуска тестов
+### Сборка исполняемого Jar
 
 ```bash
-./gradlew clean build
+./mvnw clean package
 ```
 
-WAR‑файл будет создан в `build/libs/my-blog-back-app.war`
+Готовый Jar лежит в `target/blog-0.0.1-SNAPSHOT.jar` и уже содержит встроенный Tomcat.
 
+### Запуск
+
+Запустите приложение напрямую из Maven или из собранного Jar:
+
+```bash
+./mvnw spring-boot:run          # запуск из исходников
+# или
+java -jar target/blog-0.0.1-SNAPSHOT.jar
+```
+
+По умолчанию приложение слушает `http://localhost:8080`.
+
+Для работы приложения локально и использования application-test.yaml нужно указать active profile = local
 ---
 
-## Сборка WAR и деплой в Tomcat
+## Тестирование
 
-1. Соберите проект:
+В проекте используются два набора тестов:
 
-   ```bash
-   ./gradlew clean build
-   ```
-2. Найдите файл `my-blog-back-app.war` в каталоге `build/libs/`.
-3. Скопируйте его в каталог Tomcat:
+* Юнит‑тесты сервисов и контроллеров (JUnit 5, Spring Boot Test, MockMvc).
+* Интеграционные тесты репозиториев и REST‑слоя с использованием Testcontainers PostgreSQL.
 
-   ```bash
-   cp build/libs/my-blog-back-app.war $CATALINA_HOME/webapps/
-   ```
-4. Запустите Tomcat (`bin/startup.sh` или `bin\startup.bat`).
-5. Приложение будет доступно по адресу: [http://localhost:8080/my-blog-back-app](http://localhost:8080/my-blog-back-app)
+Команды запуска:
+
+```bash
+./mvnw test    # запускает только юнит-тесты (кроме классов, оканчивающихся на IT)
+./mvnw verify  # последовательно запускает ./mvnw test и интеграционные тесты (*IT.java)
+```
+
+Интеграционные тесты требуют запущенного Docker‑демона, чтобы поднять контейнер PostgreSQL.
 
 ---
 
@@ -136,7 +118,7 @@ WAR‑файл будет создан в `build/libs/my-blog-back-app.war`
 * `PUT /api/posts/{id}/image` — загрузка изображения;
 * `GET /api/posts/{id}/image` — получение изображения;
 * `GET /api/posts/{id}/comments` — список комментариев;
-* `GET /api/posts/{id}/comment/{commentId}` — получение комментария;
+* `GET /api/posts/{id}/comments/{commentId}` — получение комментария;
 * `POST /api/posts/{id}/comments` — добавление комментария;
 * `PUT /api/posts/{id}/comments/{commentId}` — редактирование комментария;
 * `DELETE /api/posts/{id}/comments/{commentId}` — удаление комментария.
@@ -145,45 +127,33 @@ WAR‑файл будет создан в `build/libs/my-blog-back-app.war`
 
 ---
 
-## Тестирование
-
-* **JUnit 6** — юнит‑тесты сервисов.
-* **Spring Test + MockMvc** — интеграционные тесты REST‑контроллеров.
-* **TestContainers Postgresql** — база для интеграционных тестов.
-
-Запуск:
-
-```bash
-./gradlew test
-```
-
 ## Структура проекта
 
 ```
 my-blog-back-app/
-├─ src/main/java/ru/practicum/blog/
-│  ├─ config/
-│  ├─ domain/
-│  │  ├─ exception/
-│  │  └─ model/
-│  ├─ repository/
-│  │  └─ impl/
-│  ├─ service/
-│  │  └─ impl/
-│  └─ web/
-│     ├─ advice/
-│     ├─ controller/
-│     ├─ dto/
-│     └─ mapper/
-├─ src/main/resources/
-│  ├─ application.properties
-│  ├─ application.local
-│  ├─ log4j2.xml
-│  └─ schema.sql
-├─ src/main/webapp/WEB-INF/web.xml
-├─ src/test/java/
-├─ build.gradle.kts
-└─ README.md
+├─ mvnw, mvnw.cmd
+├─ pom.xml
+├─ README.md
+├─ src/
+│  ├─ main/
+│  │  ├─ java/ru/practicum/blog/
+│  │  │  ├─ BlogApplication.java
+│  │  │  ├─ config/
+│  │  │  ├─ domain/
+│  │  │  ├─ repository/
+│  │  │  ├─ service/
+│  │  │  └─ web/
+│  │  └─ resources/
+│  │     ├─ application.yaml
+│  │     ├─ application-local.yaml
+│  │     ├─ log4j2.xml
+│  │     └─ schema.sql
+│  └─ test/
+│     ├─ java/ru/practicum/blog/
+│     │  ├─ ... тесты ...
+│     └─ resources/
+│        ├─ application-test.yaml
+│        └─ schema.sql
 ```
 
-Проект готов к развёртыванию в **Tomcat** и использует **PostgreSQL** как основную базу данных.
+Проект готов к локальному запуску как Spring Boot приложение и использует PostgreSQL в качестве постоянного хранилища данных.

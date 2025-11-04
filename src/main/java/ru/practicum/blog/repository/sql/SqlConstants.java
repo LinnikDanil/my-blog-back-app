@@ -1,4 +1,4 @@
-package ru.practicum.blog.repository.util;
+package ru.practicum.blog.repository.sql;
 
 import lombok.experimental.UtilityClass;
 

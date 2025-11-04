@@ -1,5 +1,6 @@
 package ru.practicum.blog.util;
 
+import lombok.experimental.UtilityClass;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import ru.practicum.blog.domain.model.Comment;
@@ -12,10 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@UtilityClass
 public final class TestDataFactory {
-
-    private TestDataFactory() {
-    }
 
     public static Post createPost(
             long id,

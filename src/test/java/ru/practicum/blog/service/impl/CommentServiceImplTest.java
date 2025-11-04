@@ -91,7 +91,7 @@ class CommentServiceImplTest {
         void shouldThrowWhenCommentMissing() {
             when(postRepository.existsById(3L)).thenReturn(true);
             when(commentRepository.findCommentById(3L, 5L)).thenReturn(Optional.empty());
-            
+
             assertThrows(CommentNotFoundException.class, () -> commentService.getComment(3L, 5L));
         }
     }

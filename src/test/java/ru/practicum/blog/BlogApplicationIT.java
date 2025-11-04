@@ -9,8 +9,8 @@ import ru.practicum.blog.config.TestContainersConfig;
 @SpringBootTest
 class BlogApplicationIT {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

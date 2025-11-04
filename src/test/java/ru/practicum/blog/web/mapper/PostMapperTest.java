@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import ru.practicum.blog.domain.model.Post;
 import ru.practicum.blog.util.TestDataFactory;
@@ -12,8 +13,6 @@ import ru.practicum.blog.web.dto.PostsResponseDto;
 
 import java.util.List;
 import java.util.stream.Stream;
-
-import org.junit.jupiter.params.provider.Arguments;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

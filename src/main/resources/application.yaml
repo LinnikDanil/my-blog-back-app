@@ -16,4 +16,4 @@ spring:
 logging:
   level:
     ru:
-      practicum: ${LOGGING_PRACTICUM_LEVEL}}
+      practicum: ${LOGGING_PRACTICUM_LEVEL}

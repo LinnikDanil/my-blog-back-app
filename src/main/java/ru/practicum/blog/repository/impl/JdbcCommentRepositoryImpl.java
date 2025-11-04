@@ -7,7 +7,7 @@ import ru.practicum.blog.domain.exception.CommentDbException;
 import ru.practicum.blog.domain.exception.CommentNotFoundException;
 import ru.practicum.blog.domain.model.Comment;
 import ru.practicum.blog.repository.CommentRepository;
-import ru.practicum.blog.repository.util.SqlConstants;
+import ru.practicum.blog.repository.sql.SqlConstants;
 
 import java.util.List;
 import java.util.Map;

@@ -15,7 +15,7 @@ import ru.practicum.blog.domain.exception.PostNotFoundException;
 import ru.practicum.blog.domain.model.Post;
 import ru.practicum.blog.domain.model.Tag;
 import ru.practicum.blog.repository.PostRepository;
-import ru.practicum.blog.repository.util.SqlConstants;
+import ru.practicum.blog.repository.sql.SqlConstants;
 
 import java.util.ArrayList;
 import java.util.Collections;

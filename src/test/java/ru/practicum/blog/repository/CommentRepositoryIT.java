@@ -11,7 +11,6 @@ import ru.practicum.blog.config.TestContainersConfig;
 import ru.practicum.blog.domain.exception.CommentNotFoundException;
 import ru.practicum.blog.domain.model.Comment;
 import ru.practicum.blog.repository.impl.JdbcCommentRepositoryImpl;
-import ru.practicum.blog.repository.impl.JdbcPostRepositoryImpl;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Import({TestContainersConfig.class, JdbcCommentRepositoryImpl.class})
 @DisplayName("JdbcCommentRepository")
 @DataJdbcTest
-class CommentRepositoryTest {
+class CommentRepositoryIT {
 
     @Autowired
     private CommentRepository commentRepository;

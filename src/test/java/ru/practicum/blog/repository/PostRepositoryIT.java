@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Import({TestContainersConfig.class, JdbcPostRepositoryImpl.class})
 @DisplayName("JdbcPostRepository")
 @DataJdbcTest
-class PostRepositoryTest {
+class PostRepositoryIT {
 
     @Autowired
     private PostRepository postRepository;

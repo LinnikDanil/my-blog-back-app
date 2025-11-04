@@ -7,7 +7,7 @@ import ru.practicum.blog.config.TestContainersConfig;
 
 @Import(TestContainersConfig.class)
 @SpringBootTest
-class BlogApplicationTests {
+class BlogApplicationIT {
 
 	@Test
 	void contextLoads() {

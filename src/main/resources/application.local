@@ -1,5 +1,0 @@
-spring.datasource.url=jdbc:postgresql://localhost:5432/postgres?currentSchema=blog_app
-spring.datasource.username=postgres
-spring.datasource.password=postgres
-
-spring.cors.allowed.origins=http://localhost

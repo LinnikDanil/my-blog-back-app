@@ -1,11 +1,13 @@
 package ru.practicum.blog.web.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.blog.domain.model.Comment;
 import ru.practicum.blog.web.dto.CommentResponseDto;
 
 import java.util.Collections;
 import java.util.List;
 
+@UtilityClass
 public class CommentMapper {
     public static List<CommentResponseDto> toCommentDtoList(List<Comment> comments) {
         if (comments.isEmpty()) {

@@ -93,6 +93,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public void deleteComment(long postId, long commentId) {
         log.info("Deleting comment with id={} for postId={}", commentId, postId);
+        checkExistencePost(postId);
         commentRepository.deleteComment(postId, commentId);
         postRepository.decrementComments(postId);
     }

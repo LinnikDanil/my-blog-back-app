@@ -1,0 +1,262 @@
+{
+  "info": {
+    "_postman_id": "9961222e-8108-4a0d-8a07-a7cb1478e130",
+    "name": "my-block-back-app",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "26373943"
+  },
+  "item": [
+    {
+      "name": "get Posts",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/posts?search=post&pageNumber=1&pageSize=10",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts"],
+          "query": [
+            { "key": "search", "value": "post" },
+            { "key": "pageNumber", "value": "1" },
+            { "key": "pageSize", "value": "10" }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get Post by id",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Название поста 3\",\n  \"text\": \"Текст поста в формате Markdown...\",\n  \"tags\": [\"tag_1\", \"tag_2\"]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/posts",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "update Post",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 3,\n  \"title\": \"Название поста 3\",\n  \"text\": \"Текст поста в формате Markdown...\",\n  \"tags\": [\"tag_1\", \"tag_2\"]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/posts/3",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "3"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "delete Post",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "like Post (+1)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1/likes",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1", "likes"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "update Post image (multipart)",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "image",
+              "type": "file",
+              "src": "image_name.jpg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1/image",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1", "image"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get Post image (bytes)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1/image",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1", "image"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get Post comments",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1/comments?pageNumber=1&pageSize=10",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1", "comments"],
+          "query": [
+            { "key": "pageNumber", "value": "1" },
+            { "key": "pageSize", "value": "10" }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get Post comment by id",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1/comments/2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1", "comments", "2"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create Comment",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"Комментарий к посту\",\n  \"postId\": 1\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1/comments",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1", "comments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "update Comment",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": 2,\n  \"text\": \"Второй комментарий к посту 1\",\n  \"postId\": 1\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1/comments/2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1", "comments", "2"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "delete Comment",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/posts/1/comments/2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "posts", "1", "comments", "2"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

@@ -22,7 +22,7 @@ class CommentMapperTest {
         @DisplayName("should return empty list when no comments")
         void shouldReturnEmptyListWhenNoComments() {
             var dtoList = CommentMapper.toCommentDtoList(List.of());
-            
+
             assertTrue(dtoList.isEmpty());
         }
 
@@ -30,9 +30,9 @@ class CommentMapperTest {
         @DisplayName("should map comments to dto list")
         void shouldMapCommentsToDtoList() {
             Comment comment = TestDataFactory.createComment(1L, "text", 4L);
-            
+
             var dtoList = CommentMapper.toCommentDtoList(List.of(comment));
-            
+
             assertEquals(1, dtoList.size());
             var dto = dtoList.getFirst();
             assertEquals(1L, dto.id());
@@ -49,7 +49,7 @@ class CommentMapperTest {
         @DisplayName("should map comment to dto")
         void shouldMapCommentToDto() {
             Comment comment = TestDataFactory.createComment(2L, "another", 5L);
-            
+
             var dto = CommentMapper.toCommentDto(comment);
 
             assertEquals(2L, dto.id());

@@ -8,4 +8,7 @@ public record PostsResponseDto(
         boolean hasNext, // true - если текущая страница не последняя
         int lastPage // номер последней страницы
 ) {
+    public PostsResponseDto {
+        posts = List.copyOf(posts); // Иммутабельность для неиммутабельного поля
+    }
 }

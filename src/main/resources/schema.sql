@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS blog_app;
 CREATE TABLE IF NOT EXISTS tag
 (
     id   BIGSERIAL PRIMARY KEY,
-    name VARCHAR(256) NOT NULL UNIQUE CHECK (name = lower(name))
+    name VARCHAR(256) NOT NULL UNIQUE CHECK (name = LOWER(name))
 );
 
 CREATE TABLE IF NOT EXISTS post
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS comment
     id         BIGSERIAL PRIMARY KEY,
     text       TEXT      NOT NULL,
     post_id    BIGINT    NOT NULL REFERENCES post (id) ON DELETE CASCADE,
-    updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -36,4 +36,4 @@ CREATE TABLE IF NOT EXISTS post_tag
 
 CREATE INDEX IF NOT EXISTS idx_comment_post_id ON comment (post_id);
 CREATE INDEX IF NOT EXISTS idx_post_created_at_id ON post (created_at DESC, id DESC);
-CREATE INDEX IF NOT EXISTS idx_post_title_lower ON post ((lower(title)));
+CREATE INDEX IF NOT EXISTS idx_post_title_lower ON post ((LOWER(title)));
